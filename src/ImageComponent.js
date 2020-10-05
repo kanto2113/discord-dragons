@@ -38,8 +38,7 @@ const ImageComponent = () => {
   })
 
   // charaters state array
-
-  const [combatant, setCombatant] = useState([
+  const [combatants, setCombatants] = useState([
     {
       ac: 16,
       cha: 14,
@@ -212,7 +211,7 @@ const ImageComponent = () => {
           name: "Cure Wounds",
           onUse:
             "Your holy light heals your companion CHARACTER for HEALING health. ROLL",
-          spellBonus: ["wisBonus", "prof"],
+          spellBonus: "wisBonus"
         },
       ],
       str: 13,
@@ -235,26 +234,60 @@ const ImageComponent = () => {
     return percentOfHP
   }
 
+
+  // use heal spell
+
+  const healSpellHandler = (combatantIndex, spellIndex, combatantToHealIndex) => {
+    let numOfDice = combatants[combatantIndex].spells[spellIndex].heal[0]
+    let healLength = combatants[combatantIndex].spells[spellIndex].heal.length
+    let healDie
+    if (healLength === 3){
+      healDie = combatants[combatantIndex].spells[spellIndex].heal[2]
+    } else {
+      healDie = combatants[combatantIndex].spells[spellIndex].heal[2] + combatants[combatantIndex].spells[spellIndex].heal[3]
+    }
+    let i
+    let heal = 0
+    for (i=0; i < numOfDice; i++){
+      heal = heal + Math.floor(Math.random() * healDie +1)
+    }
+    let totalHeal = heal + combatants[combatantIndex][combatants[combatantIndex].spells[spellIndex].spellBonus]
+    let newCharacterHP = combatants[combatantToHealIndex].hp + totalHeal
+    if (newCharacterHP > combatants[combatantToHealIndex].maxHP){
+      newCharacterHP = combatants[combatantToHealIndex].maxHP
+      let cloneCharacter = {...combatants[combatantToHealIndex], hp: newCharacterHP}
+      let cloneCombatants = [...combatants]
+      let deletedCharacter = cloneCombatants.splice(combatantToHealIndex, 1, cloneCharacter)
+      setCombatants(cloneCombatants)
+
+    } else {
+      let cloneCharacter = {...combatants[combatantToHealIndex], hp: newCharacterHP}
+      let cloneCombatants = [...combatants]
+      let deletedCharacter = cloneCombatants.splice(combatantToHealIndex, 1, cloneCharacter)
+      setCombatants(cloneCombatants)
+    }
+  }
+
   // use attack skill
 
   const attackHandler = (combatantIndex, skillIndex) => {
     let hitRoll = Math.floor(Math.random() * 20 + 1)
-    let statBonus = combatant[combatantIndex].skills[skillIndex].hitBonus[0]
+    let statBonus = combatants[combatantIndex].skills[skillIndex].hitBonus[0]
     let toHit =
       hitRoll +
-      combatant[combatantIndex][statBonus] +
-      combatant[combatantIndex].prof
+      combatants[combatantIndex][statBonus] +
+      combatants[combatantIndex].prof
     if (toHit >= monsters.ac) {
-      let numOfDice = combatant[combatantIndex].skills[skillIndex].damage[0]
+      let numOfDice = combatants[combatantIndex].skills[skillIndex].damage[0]
       let damageLength =
-        combatant[combatantIndex].skills[skillIndex].damage.length
+        combatants[combatantIndex].skills[skillIndex].damage.length
       let damageDie
       if (damageLength === 3) {
-        damageDie = combatant[combatantIndex].skills[skillIndex].damage[2]
+        damageDie = combatants[combatantIndex].skills[skillIndex].damage[2]
       } else {
         damageDie =
-          combatant[combatantIndex].skills[skillIndex].damage[2] +
-          combatant[combatantIndex].skills[skillIndex].damage[3]
+          combatants[combatantIndex].skills[skillIndex].damage[2] +
+          combatants[combatantIndex].skills[skillIndex].damage[3]
       }
       let i
       let damage = 0
@@ -263,8 +296,8 @@ const ImageComponent = () => {
       }
       let totalDMG =
         damage +
-        combatant[combatantIndex][
-          combatant[combatantIndex].skills[skillIndex].damageBonus
+        combatants[combatantIndex][
+          combatants[combatantIndex].skills[skillIndex].damageBonus
         ]
       let newMonsterHP = monsters.hp - totalDMG
       if (newMonsterHP < 0) {
@@ -278,24 +311,24 @@ const ImageComponent = () => {
     }
   }
 
-  const attackSpellHandler = (combatantIndex, spellIndex) => {
+  const SpellAttackHandler = (combatantIndex, spellIndex) => {
     let hitRoll = Math.floor(Math.random() * 20 + 1)
-    let statBonus = combatant[combatantIndex].spells[spellIndex].hitBonus[0]
+    let statBonus = combatants[combatantIndex].spells[spellIndex].hitBonus[0]
     let toHit =
       hitRoll +
-      combatant[combatantIndex][statBonus] +
-      combatant[combatantIndex].prof
+      combatants[combatantIndex][statBonus] +
+      combatants[combatantIndex].prof
     if (toHit >= monsters.ac) {
-      let numOfDice = combatant[combatantIndex].spells[spellIndex].damage[0]
+      let numOfDice = combatants[combatantIndex].spells[spellIndex].damage[0]
       let damageLength =
-        combatant[combatantIndex].spells[spellIndex].damage.length
+        combatants[combatantIndex].spells[spellIndex].damage.length
       let damageDie
       if (damageLength === 3) {
-        damageDie = combatant[combatantIndex].spells[spellIndex].damage[2]
+        damageDie = combatants[combatantIndex].spells[spellIndex].damage[2]
       } else {
         damageDie =
-          combatant[combatantIndex].spells[spellIndex].damage[2] +
-          combatant[combatantIndex].spells[spellIndex].damage[3]
+          combatants[combatantIndex].spells[spellIndex].damage[2] +
+          combatants[combatantIndex].spells[spellIndex].damage[3]
       }
       let i
       let damage = 0
@@ -315,7 +348,7 @@ const ImageComponent = () => {
   }
 
   return (
-    <CombatantContext.Provider value={[combatant, setCombatant]}>
+    <CombatantContext.Provider value={[combatants, setCombatants]}>
       <MonstersContext.Provider value={[monsters, setMonsters]}>
         <div ref={containerRef} className="combat-render">
           <div>
@@ -346,11 +379,12 @@ const ImageComponent = () => {
             </button>
             <button
               onClick={() => {
-                attackSpellHandler(1, 0)
+                SpellAttackHandler(1, 0)
               }}
             >
               Spell Cast
             </button>
+            <button onClick={()=>{healSpellHandler(3, 0, 0)}}>Heal</button>
             <CharacterGenerator></CharacterGenerator>
             <Monsters></Monsters>
           </div>
